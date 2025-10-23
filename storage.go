@@ -120,7 +120,7 @@ func upload(e event.Event) uint32 {
 		fileData = []byte(req.Data)
 	}
 
-	// Write data to the file
+	// Write data to the file using Add method
 	_, err = file.Add(fileData, true)
 	if err != nil {
 		return failed(h, err, 500)
@@ -156,10 +156,10 @@ func download(e event.Event) uint32 {
 	// Select file/object
 	file := sto.File(filename)
 
-	// Get a io.ReadCloser
+	// Get the file content using GetFile method
 	reader, err := file.GetFile()
 	if err != nil {
-		return failed(h, err, 500)
+		return failed(h, err, 404) // File not found
 	}
 	defer reader.Close()
 

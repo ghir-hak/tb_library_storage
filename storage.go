@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"io"
+	"strings"
 
 	"github.com/taubyte/go-sdk/event"
 	http "github.com/taubyte/go-sdk/http/event"
@@ -136,12 +137,22 @@ func listFiles(e event.Event) uint32 {
 		return 0
 	}
 
-	// Convert file objects to strings
+	// Convert file objects to strings and extract filenames
 	var fileNames []string
 	for _, file := range files {
-		// Debug: log the file object type
 		fileStr := fmt.Sprintf("%v", file)
-		fileNames = append(fileNames, fileStr)
+		// Extract filename from format like "{0 Group 1.png 1}"
+		// Remove the braces and split by spaces
+		cleanStr := strings.Trim(fileStr, "{}")
+		parts := strings.Fields(cleanStr)
+		if len(parts) >= 3 {
+			// Join all parts except first and last (which are metadata)
+			filename := strings.Join(parts[1:len(parts)-1], " ")
+			fileNames = append(fileNames, filename)
+		} else {
+			// Fallback to original string if parsing fails
+			fileNames = append(fileNames, fileStr)
+		}
 	}
 
 	// Return list of filenames

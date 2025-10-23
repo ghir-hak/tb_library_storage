@@ -1,6 +1,7 @@
 package lib
 
 import (
+	"encoding/base64"
 	"encoding/json"
 	"fmt"
 	"io"
@@ -26,6 +27,7 @@ func setCORSHeaders(h http.Event) {
 type UploadReq struct {
 	Filename string `json:"filename"`
 	Data     string `json:"data"`
+	IsBinary bool   `json:"isBinary"`
 }
 
 // POST /api/upload
@@ -57,8 +59,21 @@ func upload(e event.Event) uint32 {
 	// Select file/object
 	file := sto.File(req.Filename)
 
+	// Convert base64 data to bytes if it's binary
+	var fileData []byte
+	if req.IsBinary {
+		// For binary files, decode base64
+		fileData, err = base64.StdEncoding.DecodeString(req.Data)
+		if err != nil {
+			return failed(h, err, 500)
+		}
+	} else {
+		// For text files, use as-is
+		fileData = []byte(req.Data)
+	}
+
 	// Write data to the file
-	_, err = file.Add([]byte(req.Data), true)
+	_, err = file.Add(fileData, true)
 	if err != nil {
 		return failed(h, err, 500)
 	}

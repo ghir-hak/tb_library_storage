@@ -2,6 +2,7 @@ package lib
 
 import (
 	"encoding/json"
+	"fmt"
 	"io"
 
 	"github.com/taubyte/go-sdk/event"
@@ -135,8 +136,16 @@ func listFiles(e event.Event) uint32 {
 		return 0
 	}
 
-	// Return list of filenames (files should already be strings)
-	filesJson, err := json.Marshal(files)
+	// Convert file objects to strings
+	var fileNames []string
+	for _, file := range files {
+		// Debug: log the file object type
+		fileStr := fmt.Sprintf("%v", file)
+		fileNames = append(fileNames, fileStr)
+	}
+
+	// Return list of filenames
+	filesJson, err := json.Marshal(fileNames)
 	if err != nil {
 		emptyArray := []string{}
 		filesJson, _ = json.Marshal(emptyArray)

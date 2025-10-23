@@ -135,28 +135,8 @@ func listFiles(e event.Event) uint32 {
 		return 0
 	}
 
-	// Convert files to string array if needed
-	var fileNames []string
-	if len(files) > 0 {
-		// Check if files are already strings or objects
-		for _, file := range files {
-			if fileName, ok := file.(string); ok {
-				fileNames = append(fileNames, fileName)
-			} else {
-				// If it's an object, try to extract the name field
-				if fileObj, ok := file.(map[string]interface{}); ok {
-					if name, exists := fileObj["name"]; exists {
-						if nameStr, ok := name.(string); ok {
-							fileNames = append(fileNames, nameStr)
-						}
-					}
-				}
-			}
-		}
-	}
-
-	// Return list of filenames
-	filesJson, err := json.Marshal(fileNames)
+	// Return list of filenames (files should already be strings)
+	filesJson, err := json.Marshal(files)
 	if err != nil {
 		emptyArray := []string{}
 		filesJson, _ = json.Marshal(emptyArray)

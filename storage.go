@@ -250,6 +250,12 @@ func deleteFile(e event.Event) uint32 {
 	// Select file/object
 	file := sto.File(filename)
 
+	// Check if file exists by trying to get it first
+	_, err = file.GetFile()
+	if err != nil {
+		return failed(h, err, 404) // File not found
+	}
+
 	// Delete the file using the Delete method
 	err = file.Delete()
 	if err != nil {

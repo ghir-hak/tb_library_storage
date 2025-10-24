@@ -250,9 +250,11 @@ func deleteFile(e event.Event) uint32 {
 	// Select file/object
 	file := sto.File(filename)
 
-	// Delete the file
+	// Delete the file using the Delete method
 	err = file.Delete()
 	if err != nil {
+		// Log the error for debugging
+		h.Write([]byte("Delete error: " + err.Error()))
 		return failed(h, err, 500)
 	}
 

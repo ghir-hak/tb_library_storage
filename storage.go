@@ -23,53 +23,7 @@ func setCORSHeaders(h http.Event) {
 	h.Headers().Set("Access-Control-Allow-Headers", "Content-Type, Authorization")
 }
 
-func getContentType(filename string) string {
-	ext := strings.ToLower(strings.TrimPrefix(strings.TrimPrefix(filename, "."), "."))
-	switch ext {
-	case "png":
-		return "image/png"
-	case "jpg", "jpeg":
-		return "image/jpeg"
-	case "gif":
-		return "image/gif"
-	case "bmp":
-		return "image/bmp"
-	case "webp":
-		return "image/webp"
-	case "svg":
-		return "image/svg+xml"
-	case "pdf":
-		return "application/pdf"
-	case "zip":
-		return "application/zip"
-	case "mp3":
-		return "audio/mpeg"
-	case "mp4":
-		return "video/mp4"
-	case "avi":
-		return "video/x-msvideo"
-	case "mov":
-		return "video/quicktime"
-	case "wmv":
-		return "video/x-ms-wmv"
-	case "flv":
-		return "video/x-flv"
-	case "webm":
-		return "video/webm"
-	case "ogg":
-		return "audio/ogg"
-	case "wav":
-		return "audio/wav"
-	case "flac":
-		return "audio/flac"
-	case "aac":
-		return "audio/aac"
-	case "m4a":
-		return "audio/mp4"
-	default:
-		return "application/octet-stream"
-	}
-}
+
 
 type UploadReq struct {
 	Filename string `json:"filename"`
@@ -87,7 +41,7 @@ func upload(e event.Event) uint32 {
 	setCORSHeaders(h)
 
 	// Open/Create the storage
-	sto, err := storage.New("/storage")
+	sto, err := storage.New("pastebin")
 	if err != nil {
 		return failed(h, err, 500)
 	}
@@ -136,7 +90,7 @@ func download(e event.Event) uint32 {
 	}
 
 	// Open/Create the storage
-	sto, err := storage.New("/storage")
+	sto, err := storage.New("pastebin")
 	if err != nil {
 		return failed(h, err, 500)
 	}
@@ -157,11 +111,6 @@ func download(e event.Event) uint32 {
 		return failed(h, err, 500)
 	}
 
-	// Set appropriate content type based on file extension
-	contentType := getContentType(filename)
-	h.Headers().Set("Content-Type", contentType)
-	h.Headers().Set("Content-Disposition", fmt.Sprintf("attachment; filename=\"%s\"", filename))
-
 	// Write the binary data to response
 	h.Write(fileContent)
 	h.Return(200)
@@ -179,7 +128,7 @@ func listFiles(e event.Event) uint32 {
 	setCORSHeaders(h)
 
 	// Open/Create the storage
-	sto, err := storage.New("/storage")
+	sto, err := storage.New("pastebin")
 	if err != nil {
 		return failed(h, err, 500)
 	}

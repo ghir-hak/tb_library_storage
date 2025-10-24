@@ -1,7 +1,6 @@
 package lib
 
 import (
-	"encoding/base64"
 	"encoding/json"
 	"fmt"
 	"io"
@@ -75,7 +74,6 @@ func getContentType(filename string) string {
 type UploadReq struct {
 	Filename string `json:"filename"`
 	Data     string `json:"data"`
-	IsBinary bool   `json:"isBinary"`
 }
 
 // POST /api/upload
@@ -107,18 +105,8 @@ func upload(e event.Event) uint32 {
 	// Select file/object
 	file := sto.File(req.Filename)
 
-	// Convert base64 data to bytes if it's binary
-	var fileData []byte
-	if req.IsBinary {
-		// For binary files, decode base64
-		fileData, err = base64.StdEncoding.DecodeString(req.Data)
-		if err != nil {
-			return failed(h, err, 500)
-		}
-	} else {
-		// For text files, use as-is
-		fileData = []byte(req.Data)
-	}
+	// Convert text data to bytes
+	fileData := []byte(req.Data)
 
 	// Write data to the file using Add method
 	_, err = file.Add(fileData, true)
@@ -233,6 +221,42 @@ func listFiles(e event.Event) uint32 {
 	}
 
 	h.Write(filesJson)
+	h.Return(200)
+	return 0
+}
+
+// DELETE /api/delete?filename={filename}
+//export deleteFile
+func deleteFile(e event.Event) uint32 {
+	h, err := e.HTTP()
+	if err != nil {
+		return 1
+	}
+
+	setCORSHeaders(h)
+
+	// Read the filename from the query string
+	filename, err := h.Query().Get("filename")
+	if err != nil {
+		return failed(h, err, 400)
+	}
+
+	// Open/Create the storage
+	sto, err := storage.New("/storage")
+	if err != nil {
+		return failed(h, err, 500)
+	}
+
+	// Select file/object
+	file := sto.File(filename)
+
+	// Delete the file
+	err = file.Delete()
+	if err != nil {
+		return failed(h, err, 500)
+	}
+
+	h.Write([]byte("File deleted successfully"))
 	h.Return(200)
 	return 0
 }
